@@ -1,0 +1,42 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+issueTrackerURL="https://github.com/samhren/extradelight-vat-automation/issues"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="samhren"
+displayURL="https://github.com/samhren/extradelight-vat-automation"
+description='''
+Makes the ExtraDelight Vat automatable with Create funnels, belts, fluid pipes and hoppers.
+Inputs are routed to the right vat slot automatically, only finished products can be pulled out, and a comparator reads whether the current stage needs the lid.
+'''
+# Server-side logic only: clients without this mod can still join.
+displayTest="IGNORE_ALL_VERSION"
+
+[[mixins]]
+config="${mod_id}.mixins.json"
+
+[[dependencies.${mod_id}]]
+    modId="neoforge"
+    type="required"
+    versionRange="[21.1.4,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    type="required"
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="extradelight"
+    type="required"
+    reason="This mod only adds automation support to the ExtraDelight Vat."
+    versionRange="[2.6,)"
+    ordering="AFTER"
+    side="BOTH"

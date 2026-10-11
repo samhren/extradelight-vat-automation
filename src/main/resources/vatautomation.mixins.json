@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.samhren.vatautomation.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "VatBlockMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
