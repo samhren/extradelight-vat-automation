@@ -197,6 +197,62 @@ public final class VatAutomationTests {
 		});
 	}
 
+	/**
+	 * Create pumps push fluid in fixed-size packets (half the pump's RPM in mB, so 128 mB at 256 RPM). The Vat's own
+	 * tank refuses a packet that does not fit completely, which used to leave it stuck at 896 mB.
+	 */
+	@GameTest(template = EMPTY, timeoutTicks = 400)
+	public static void createPumpFillsVatToTheBrim(GameTestHelper helper) {
+		floor(helper);
+		VatBlockEntity vat = placeVat(helper);
+		BlockPos tankPos = VAT.west(2);
+		BlockPos pumpPos = VAT.west();
+		helper.setBlock(tankPos, block("create:creative_fluid_tank"));
+		helper.setBlock(pumpPos, withFacing(block("create:mechanical_pump").defaultBlockState(), Direction.EAST));
+		helper.setBlock(pumpPos.north(), block("create:cogwheel").defaultBlockState()
+				.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.AXIS, Direction.Axis.X));
+		helper.setBlock(pumpPos.north().west(), withFacing(block("create:creative_motor").defaultBlockState(), Direction.EAST));
+
+		// Create's classes need Flywheel on the compile classpath, so drive them reflectively.
+		try {
+			Object tank = helper.getBlockEntity(tankPos);
+			Object inventory = tank.getClass().getMethod("getTankInventory").invoke(tank);
+			inventory.getClass().getMethod("setContainedFluid", FluidStack.class)
+					.invoke(inventory, new FluidStack(fluid("minecraft:water"), 1000));
+			Object motor = helper.getBlockEntity(pumpPos.north().west());
+			Object speed = motor.getClass().getField("generatedSpeed").get(motor);
+			speed.getClass().getMethod("setValue", int.class).invoke(speed, 256);
+		} catch (ReflectiveOperationException e) {
+			throw new IllegalStateException("Create API changed", e);
+		}
+
+		helper.succeedWhen(() -> {
+			int amount = vat.getFluidTank().getFluidAmount(0);
+			helper.assertTrue(amount == 1000, "vat holds " + amount + " mB, expected 1000");
+		});
+	}
+
+	@GameTest(template = EMPTY)
+	public static void fluidHandlerAcceptsPartialFills(GameTestHelper helper) {
+		placeVat(helper);
+		IFluidHandler tank = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(VAT), Direction.UP);
+		helper.assertTrue(tank.getTanks() == 1 && tank.getTankCapacity(0) == 1000, "empty vat should report one 1000 mB tank");
+		helper.assertTrue(tank.isFluidValid(0, new FluidStack(fluid("minecraft:water"), 1)), "water should be valid");
+		FluidStack packet = new FluidStack(fluid("minecraft:water"), 128);
+		int total = 0;
+		for (int i = 0; i < 7; i++) {
+			total += tank.fill(packet.copy(), FluidAction.EXECUTE);
+		}
+		helper.assertTrue(tank.fill(packet.copy(), FluidAction.SIMULATE) == 104, "simulated fill should report the 104 mB that fit");
+		total += tank.fill(packet.copy(), FluidAction.EXECUTE);
+		helper.assertTrue(total == 1000, "filled " + total + " mB, expected 1000");
+		helper.assertTrue(tank.fill(packet.copy(), FluidAction.EXECUTE) == 0, "a full vat should accept nothing");
+		helper.assertTrue(tank.getFluidInTank(0).getAmount() == 1000, "tank should read 1000 mB");
+		helper.assertTrue(tank.fill(new FluidStack(fluid("extradelight:vinegar_fluid"), 1), FluidAction.SIMULATE) == 0,
+				"a second fluid must not mix in");
+		helper.succeed();
+	}
+
 	private static VatBlockEntity placeVat(GameTestHelper helper) {
 		helper.setBlock(VAT, ExtraDelightBlocks.VAT.get());
 		return helper.getBlockEntity(VAT);

@@ -33,6 +33,8 @@ For example, raw fish with water becomes fish sauce (one fish per batch), and ra
 ### Fluids (Create pipes)
 
 The Vat's tank is exposed on every side, so Create fluid pipes and pumps can fill it with water, vinegar, apple cider or lemon juice.
+Fills are trimmed to the space left, so a pump fills the Vat to the full 1000 mB at any speed.
+ExtraDelight's tank on its own refuses a packet that doesn't fit completely, which made pumps stall partway (896 mB at 256 RPM).
 
 ### Lid (comparator)
 
@@ -75,4 +77,4 @@ A funnel or hopper next to it can collect them.
 ```
 
 The GameTests run in a real server with Create installed.
-They cover slot routing, recipe disambiguation, a vanilla hopper, and a full two-batch sauerkraut run fed by Create funnels with a comparator-driven piston handling the lid.
+They cover slot routing, recipe disambiguation, a vanilla hopper, a Create pump filling the Vat to the brim, and a full two-batch sauerkraut run fed by Create funnels with a comparator-driven piston handling the lid.

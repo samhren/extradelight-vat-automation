@@ -21,6 +21,6 @@ public final class VatAutomation {
 		event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ExtraDelightBlockEntities.VAT.get(),
 				(vat, side) -> new VatItemHandler(vat));
 		event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ExtraDelightBlockEntities.VAT.get(),
-				(vat, side) -> vat.getFluidTank());
+				(vat, side) -> new VatFluidHandler(vat.getFluidTank()));
 	}
 }
